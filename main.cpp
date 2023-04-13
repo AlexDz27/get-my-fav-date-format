@@ -1,11 +1,12 @@
 #include <iostream>
 #include <string>
 #include <ctime>
+#include <windows.h>
 using namespace std;
 
 string padWithZero(int num);
+void copyStringToClipboard(string _string);
 
-// TODO: check my questions. then probably brush up the knowledge on pointers and stuff
 int main() {
   // Get time
   time_t now = time(0);
@@ -24,7 +25,7 @@ int main() {
   string finalString = to_string(year) + "-" + monthStr + "-" + dayStr + " " + hoursStr + ":" + minutesStr;
 
   cout << finalString << endl;
-  system("PAUSE");
+  copyStringToClipboard(finalString);
 }
 
 string padWithZero(int num) {
@@ -33,4 +34,31 @@ string padWithZero(int num) {
   else finalString = to_string(num);
 
   return finalString;
+}
+
+void copyStringToClipboard(string _string) {
+  // Open the clipboard
+  if (!OpenClipboard(NULL)) {
+    cout << "Failed to open clipboard" << endl;
+    system("PAUSE");
+  }
+
+  // Allocate memory for the string and copy it
+  HGLOBAL clipBuffer = GlobalAlloc(GMEM_DDESHARE, 100);
+  if (clipBuffer == NULL) {
+    cout << "Failed to allocate memory for clipboard" << endl;
+    CloseClipboard();
+    system("PAUSE");
+  }
+  char* buffer = (char*)GlobalLock(clipBuffer);
+  strcpy(buffer, _string.c_str());
+  GlobalUnlock(clipBuffer);
+
+  // Empty the clipboard and set the new data
+  EmptyClipboard();
+  SetClipboardData(CF_TEXT, clipBuffer);
+
+  // Clean up and exit
+  CloseClipboard();
+  GlobalFree(clipBuffer);
 }
